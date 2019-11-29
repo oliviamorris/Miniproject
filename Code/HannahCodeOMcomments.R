@@ -224,7 +224,7 @@ mystuff = read.table("Data/Sensitivity_opt2_picklambda.csv", sep=",", header = T
 
 #OM: data contains the defined variables just in a table? - different values though for some not all?
 
-cou=1 #OM: what is this, is it for making a table for all rivers and yo uchoose which one or soemthing 
+cou=1 #OM: what is this
 M_Vlt = Vest_create_M(mystuff$Npy_V[cou], mystuff$Rpy_V[cou], mystuff$NSW_V[cou], 
                       mystuff$NSWR_V[cou],mystuff$Nk_V[cou], mystuff$Nks_V[cou], mystuff$NksR_V[cou], 
                       mystuff$Sps_V[cou], 
@@ -238,27 +238,29 @@ M_Vlt = Vest_create_M(mystuff$Npy_V[cou], mystuff$Rpy_V[cou], mystuff$NSW_V[cou]
                       mystuff$testp_V[cou])
 
 M_Vlt = Vest_create_M(Npy_V, Rpy_V, NSW_V, 
-                      NSWR_V,Nk_V, Nks_V, mystuff$NksR_V[cou], 
-                      mystuff$Sps_V[cou], 
-                      rbind(0,0,0,mystuff$pp1_V[cou],mystuff$pp2_V[cou],1), 
-                      rbind(mystuff$Spmat_V1[cou],mystuff$Spmat_V2[cou],mystuff$Spmat_V3[cou],mystuff$Spmat_V4[cou],mystuff$Spmat_V5[cou],mystuff$Spmat_V6[cou],mystuff$Spmat_V7[cou]), 
-                      mystuff$Sm_V[cou], mystuff$Sr_V[cou], 
-                      rbind(mystuff$p1SW_V[cou],1), 
-                      mystuff$Sk_V[cou], mystuff$Se_V[cou], 
-                      mystuff$Sf_V[cou], 
-                      rbind(mystuff$Fec_V1[cou],mystuff$Fec_V2[cou],mystuff$Fec_V3[cou]), 
-                      mystuff$testp_V[cou])
-
+                      NSWR_V,Nk_V, Nks_V, NksR_V, 
+                      Sps_V, 
+                      rbind(0,0,0,pp1_V,pp2_V,1), 
+                      rbind(Spmat_V1,Spmat_V2,Spmat_V3,Spmat_V4,Spmat_V5,Spmat_V6,Spmat_V7), 
+                      Sm_V, Sr_V, 
+                      rbind(p1SW_V,1), 
+                      Sk_V, Se_V, 
+                      Sf_V, 
+                      rbind(Fec_V1,Fec_V2,Fec_V3), 
+                      testp_V) #OM:creates a matrix inputting these values (esentially weve only given one which is why we have said one?)
 
 
 #OM - spmat v1 is different here compared to sensitivity data file...?
 #OM - fecV is also different?
 
 
-n_Vlt = Npy_V + (2*NSW_V) + Nk_V*(Nks_V + NksR_V)
-N1_Vlt = matrix(0,n_V,1)
+n_V = Npy_V + (2*NSW_V) + Nk_V*(Nks_V + NksR_V) #OM same again not sure why/difference to below - 12
 
-# Doesn't matter what this is
+n_Vlt = Npy_V + (2*NSW_V) + Nk_V*(Nks_V + NksR_V) #OM:number of stages/years in this case? 
+N1_Vlt = matrix(0,n_V,1) #OM:matrix created on number of stages? 
+N1_Vlt #OM:12 by one matrix N1
+
+# Doesn't matter what this is #OM: what is it based on? number of pops?
 N1_Vlt[1]= 117025
 N1_Vlt[2]= 49668
 N1_Vlt[3]= 8441
@@ -272,19 +274,21 @@ N1_Vlt[10]= 9
 N1_Vlt[11]= 6
 N1_Vlt[12]= 4
 
-maxit = 10000
-N_Vlt= matrix(0,n_V,maxit)
-N_Vlt[,1] = N1_Vlt
+N1_Vlt
+
+maxit = 10000  #OM:i.e. no. of years?
+N_Vlt= matrix(0,n_V,maxit) #OM matrix of 0s, 12 by 10000 matrix
+N_Vlt[,1] = N1_Vlt #OM: N input N1 initial adundances into 10000 matrix at beginning?
 
 for (i in 2:maxit){
-  N_Vlt[,i] = M_Vlt %*% N_Vlt[,i-1]
+  N_Vlt[,i] = M %*% N_Vlt[,i-1]   #OM:same as MPMpractce, multiply initial matrix numbers thing by transition matrix #I removed the M_Vlt to be M 
   
 }
 
-prpss = matrix(0,n_V,maxit)
-sumss = colSums(N_Vlt)
+prpss = matrix(0,n_V,maxit) #OM: matrix same as N_Vlt
+sumss = colSums(N_Vlt) #OM 
 for (i in 1:maxit){
-  prpss[,i] = N_Vlt[,i]/sumss[i]
+  prpss[,i] = N_Vlt[,i]/sumss[i] #OM: divided by column sums, not too sure why
 }
 
 PRP = prpss[,maxit]
@@ -300,8 +304,10 @@ PRP[8]+PRP[10]+PRP[12]
 
 #}
 
-catch_V = read.table("Data/Vesturdalsa_catch.txt",sep="")
+catch_V = read.table("Documents/PhD/MPM/Data/Vesturdalsa_catch.txt",sep="")
 returners_n = N_Vltn[8,] + N_Vltn[10,] + N_Vltn[12,]
+#OM: we dont have N_Vltn so ill try with N_Vlt
+returners_n = N_Vlt[8,] + N_Vlt[10,] + N_Vlt[12,] #OM: these columns are the 1sw returners, 2sw returners and msw returner
 #years2 = c(1974,1975,1976,1977,1978,1979,1980,1981,1982,1983,1984,1985,1986,1987,1988,1989,1990,1991,1992,1993)
 
 #plot(years2[1:20],catch_V$V1[1:20],ylim=c(0,900),xlab="Year", ylab="Number of fish", col = "green", type="o")
@@ -313,9 +319,10 @@ returners_n = N_Vltn[8,] + N_Vltn[10,] + N_Vltn[12,]
 
 
 ## Vesturdalsa better starting point from data and assumptions
-
+#OM:just trying different initial populations I presume
 n_Vb = Npy_V + (2*NSW_V) + Nk_V*(Nks_V + NksR_V)
 N1_Vb = matrix(0,n_Vb,1)
+N1_Vb
 
 #N1_Vb[1]= 26238
 #N1_Vb[2]= 6997
@@ -344,18 +351,24 @@ N1_Vb[10]= 117#246
 N1_Vb[11]= 3
 N1_Vb[12]= 2
 
+N1_Vb #OM:view 
 
-maxit = 15
-N_Vb = matrix(0,n_Vb,maxit)
-N_Vb[,1] = N1_Vb
+maxit = 15 #OM: 15 iterations?
+N_Vb = matrix(0,n_Vb,maxit) #OM:12 by 15 matrix
+N_Vb[,1] = N1_Vb #OM: input inital values into matrix projections
+
+N_Vb
 
 for (i in 2:maxit){
-  N_Vb[,i] = M_V %*% N_Vb[,i-1]
+  N_Vb[,i] = M %*% N_Vb[,i-1]   #OM: I have chnaged M_V to be just M
   
 }
+
+N_Vb #OM: shows the projections
+
 #catch_V = read.table("Vesturdalsa_catch.txt",sep="")
 
-returners = N_Vb[8,]+N_Vb[10,]+N_Vb[12,]
+returners = N_Vb[8,]+N_Vb[10,]+N_Vb[12,] #OM:8,10,12 are retruner columns, take the entire column and add them together to plot i presume
 years=c(2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016)
 plotout = cbind(returners,years,catch_V$V1[29:43])
 plot(plotout[,2], plotout[,1], type="o", col="black", xlab="Years", 
@@ -543,3 +556,7 @@ plot(plotout[,2], plotout[,1], type="o", col="black", xlab="Years",
      ylab = "Number", ylim=c(0,350))
 lines(plotout[,2],plotout[,3], type="o", col="purple")
 legend(1999, -55, xpd = TRUE, legend=c("Model - all female returners","Vesturdalsa catch data"), col=c("black","purple"),cex=0.8,pch=c(1,1,1))
+
+
+
+#######OM: i dont know the difference between all these plots, I know what is going on just not why
