@@ -5,13 +5,13 @@ growthtime <- function(m, TC){
   V <- -0.13* TC/(1+(TC/273))         #OM: from eqn, tc is temp in cels
   t <- (m ^(0.25))*exp(5.73)*exp(V)   #OM: whats e(5.73) 
   #t <- round(t, 2)                   #OM t - time
-  return(t)
+  return(t)                           #OM returns growth time to grow from 1g to M under Tc
 }
 
 # 2.calculate the growth mass in day
-growthmass <- function(t, TC){
+growthmass <- function(t, TC){        #OM: use t from above
   V <- - 0.13* TC/(1+(TC/273))
-  m <- (exp(5.73)*exp(V)/t)^(-4) # the unit of t is day, *30 make it month
+  m <- (exp(5.73)*exp(V)/t)^(-4) # the unit of t is day, *30 make it month . OM: she hasnt done this non?
   #m <- round(m,2)
   return(m)
 }
@@ -19,7 +19,7 @@ growthmass <- function(t, TC){
 # 3.calculate the survival rate of a month. It was treated as 30 days a month
 survival <- function(m, TC){  #m : mass, the unit is gram
   Temp = TC-5 +273.15                                        #OM: why -5
-  E = 0.45                                                   #OM:activation energy in fish?(ref?)
+  E = 0.45                                                   #OM:activation energy in fish?(ref?savage i think)
   k = 8.61*(10^(-5))                                         #OM:boltzmann constant 8.617333262145×10−5 in eV⋅K−1
   V <- E/ (k*Temp)                                           #OM: exp
   Z <- (m ^(-0.23))*exp(19)/exp(V) # year survival rate      #OM: wtf is e(19)
@@ -62,7 +62,7 @@ mass_after_month <- function(initial_mass, month, TC){
 
 
 # the final mass after a month with constant fixed. for the parr stage and the adult in marine stage
-mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: with a constant??
+mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: with a constant?? whats the difference between these two
   t <- growthtime(initial_mass, TC) + monthtime(month)
   end_mass <- growthmass(t, TC)
   final_mass <- c *(end_mass -initial_mass) +initial_mass
@@ -72,10 +72,10 @@ mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: with a 
 
 # the band width of parr0 
 parr0_band<- function(start_weight, end_weight, TC, c){
-  mv <-c(start_weight)
-  m <- start_weight
-  time <- c(7:12, 1:12)
-  for(i in time){
+  mv <-c(start_weight)                           #OM: mv is start weight
+  m <- start_weight                              #OM: as is m?
+  time <- c(7:12, 1:12)                          #OM:months
+  for(i in time){                                #OM: growth time and month time gives you the end mass?
     t <- growthtime(m, TC) + monthtime(i)
     end_mass <- growthmass(t, TC)
     m <- c *(end_mass -m) + m
@@ -84,8 +84,8 @@ parr0_band<- function(start_weight, end_weight, TC, c){
   # to automatically add a year bandwidth to the vector 
   repeat{
     for(i in 1:12){
-      t <- growthtime(m, TC) + monthtime(i)
-      end_mass <- growthmass(t, TC)
+      t <- growthtime(m, TC) + monthtime(i)     #OM: t here is growth time and month time 
+      end_mass <- growthmass(t, TC)             
       m <- c *(end_mass -m) + m
       mv <- c(mv, m)
     }
@@ -116,14 +116,14 @@ right_point <- function(input_point, parr0_bandwidth){
 # egg stage 
 # initial number here should be the number of eggs generated from returners
 # parameters need to be defined
-SR_egg <- 0.165                     #OM: is sr monthly surivival - yes from table 1.egg survival rate from roberston 2005 
+SR_egg <- 0.165                              #OM: is sr monthly surivival - yes from table 1.egg survival rate from roberston 2005 
 # the time of this stage is 1 month now. It can be adjusted to 2-6 weeks later
 egg_matrix <- function(TC, global_min, global_max, matrix_size){
   fill <- rep(0, matrix_size)
   min <- global_min
   max <- global_max
   for(i in min:max){
-    fill[i] <- fecundity((2*i+1)/2*10,TC)*SR_egg
+    fill[i] <- fecundity((2*i+1)/2*10,TC)*SR_egg              #OM: should this be calculated from eqn too?
   }
   return(fill)
 }
@@ -1115,13 +1115,13 @@ m12 <- function(TC, fry_matrix_size, smolt_matrix_size, matrix_size, parr0_bandw
 loop_year_returner <- function(whole_temp, year_min, year_max, fry_matrix_size, smolt_matrix_size, matrix_size, input_returner_sw1, input_returner_sw2, parr_c,marine_c, parr_max_input, parr_min_input, checkmass_smolt, checkmass_adult){
   use_temp <- subset(whole_temp, year > year_min -1 & year < year_max +1)
   
-  parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c)
+  parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c) #OM: parr0band already defined
   end_point <- right_point(parr_max_input, parr0_bandwidth)-1
   start_point <- right_point(parr_min_input, parr0_bandwidth)-1
   f <- fry_matrix_size #fry_matrix_size
   p <- end_point # parr_matrix_size
   s <- smolt_matrix_size
-  m <- matrix_size/10    #marine_matrix_size
+  m <- matrix_size/10    #marine_matrix_size     #OM: WHY DIVIDE BY TEN?
   r <- matrix_size/10   #returner_matrix_size
   
   size <- 5 + f + 7 * p + s+ 4* m +  3 * r
@@ -1225,7 +1225,7 @@ loop_year_returner <- function(whole_temp, year_min, year_max, fry_matrix_size, 
     
     
     
-    output <- paste("../Result/Use/iceland_predict/record",year_count,".csv")
+    output <- paste("Documents/PhD",year_count,".csv")
     write.csv(record, output)
     
     record_matrix[,year_count] <- record[,13] 
@@ -1239,19 +1239,213 @@ loop_year_returner <- function(whole_temp, year_min, year_max, fry_matrix_size, 
     
     
   }
-  write.csv(record_matrix, "../Result/Use/iceland_predict/record_matrix.csv")
+  write.csv(record_matrix, "Documents/PhD/record_matrix.csv")
   print("finish for loop")
 }
 
 
 
-whole_temp <- read.csv("../Data/test_iceland_temp.csv")
+whole_temp <- read.csv("Documents/PhD/Yuxin/Yuxin_Code/Data/test_iceland_temp.csv")
 
-input_data <-read.csv("../Vest_catch.csv")
-input_data_year <- subset(input_data, year>2001)
-initial_returner <- input_data_year[,3]
+input_data <-read.csv("Documents/PhD/Yuxin/Yuxin_Code/Data/Vest_catch.csv")   #OM: vesterdalsa catch from 1989 to 2015
+input_data_year <- subset(input_data, year>2001)             #OM: subset for years from 2002 onwards
+initial_returner <- input_data_year[,3]                           #om: save all catches from these years
 
-initial_returner_sw1 <- initial_returner*0.55
-initial_returner_sw2 <- initial_returner*0.45
+initial_returner_sw1 <- initial_returner*0.55                 #OM: times each catch year by 0.55 and thas tsea winter 1 (why) is it the porbability that come bac as that?
+initial_returner_sw2 <- initial_returner*0.45                 #OM: times each catch year by 0.45 amd thats sea winter 2 and then the rest of pop?
+ 
+
+
 
 loop_year_returner(whole_temp, year_min = 2002, year_max = 2016, fry_matrix_size=15, smolt_matrix_size= 1500,matrix_size = 8500, input_returner_sw1= initial_returner_sw1, input_returner_sw2=initial_returner_sw2, parr_c = 0.11, marine_c = 0.64, parr_max_input = 200, parr_min_input = 20, checkmass_smolt = 70, checkmass_adult = 1500) 
+
+#OM:
+#whole temp is csv data
+#year min/max is choose the years from 2002 to 2016?
+#fry matrix size
+#smolt matrix size
+#matrix size
+#input returner sw1 and sw2?
+#parr_c = 0.11
+#marine_c = 0.64
+#parr_max_input = 200
+#parr_min_input = 20
+#checkmass_smolt = 70
+#checkmass_adult = 1500
+
+
+############################OLIVIA BREAKING SOME OF THE FUNCTIONS DOWN TO SEE HWAT THEY ARE DOING################################
+
+#I FOUND THESE PARAMETERS DEFINED
+fry_matrix_size=15
+smolt_matrix_size= 1500
+matrix_size = 8500
+parr_max_input = 200
+parr_c = 0.11
+parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c)
+end_point <- right_point(parr_max_input, parr0_bandwidth)-1
+
+#next_year_matrix<- function(fry_matrix_size, parr_matrix_size, smolt_matrix_size, matrix_size){
+f <- fry_matrix_size #CALL IT F
+p <- end_point       #THIS IS THE PARR SIZE APPARENTLY
+s <- smolt_matrix_size 
+m <- matrix_size/10    #marine_matrix_size     #WHY DIVIDE BY TEN
+r <- matrix_size/10   #returner_matrix_size    #AND HERE
+size <- 5 + f + 7 * p + s + 4* m +  3 * r     #SIZE OF THE MATRIX IS FIVE PLUS FRY PLUS SEVEN * PARR AND SMOLT PLUS FOUR * MARINE PLUS THREE * RETURNER
+z <- matrix(0, nrow = size, ncol = size)
+#i could make it smaller to deal with?
+z[3,2] <- 1                 # Eyed-egg: Dec      Eyed-egg: Dec       #AT THESE POINTS IN THE MATRIX MAKE IT ONE, WHY?
+z[4,4] <- 1                 # Alevin
+
+#make a smaller z just to see what these are doing
+z <- matrix(0, nrow = 20, ncol = 20)
+
+z[3,2] <- 1
+z[4,4] <- 1
+
+
+f =4
+# fry
+  for(i in 5:(4+f)){
+    z[i, i] <- 1  
+  }
+z
+
+#this is hsowin that it is inoutting the data at these stages based on the sie of each 'stage' i.e frys parr smolts? and inputting horizontially a one
+# 0+ parr
+  for(i in (5+f): (4+f+p)){
+    z[i+p, i] <- 1
+  }
+  
+# 1+ parr
+  for(i in (5+f+p):(4+f+2*p)){
+    z[i+p, i] <- 1
+  }
+  
+# 2+ parr
+  for(i in (5+f+2*p): (4+f+3*p)){
+    z[i+p, i] <- 1
+  }
+  
+# 3+ parr
+  for(i in (5+f+3*p): (4+f+4*p)){
+    z[i+p, i] <- 1
+  }
+  
+# 4+ parr
+  for(i in (5+f+4*p): (4+f+5*p)){
+    z[i+p, i] <- 1
+  }
+  
+  # 5+ parr
+  for(i in (5+f+5*p): (4+f+6*p)){
+    z[i+p, i] <- 1
+  }
+  
+# 6+ parr
+  for(i in (5+f+6*p): (4+f+7*p)){
+    z[i+p, i] <- 1
+  }
+  
+  
+# smolt
+  for(i in (5+f+7*p+s):(4+f+7*p+s+m)){
+    z[i+m, i] <- 1
+  }
+  
+  # SW1
+  for(i in (5+f+7*p+s+m): (4+f+7*p+s+2*m)){
+    z[i + m, i] <- 1
+  }
+  
+  # SW2
+  for(i in (5+f+7*p+s+2*m): (4+f+7*p+s+3*m)){
+    z[i+m, i] <- 1
+  }
+  
+  # SW3
+  for(i in (5+f+7*p+s+3*m): (4+f+7*p+s+4*m)){
+    z[i, i] <- 1
+  }
+
+
+#####and then she has each month as a matrix####
+#lets break it down and see wat is happenig
+#m1 <- function(TC, fry_matrix_size, smolt_matrix_size, matrix_size, parr0_bandwidth, parr_c, marine_c, checkmass_smolt, checkmass_adult, parr_max_input, parr_min_input){
+month <- 1 #THIS IS MONTH ONE
+
+#SAME DEFINES AS BEFORE
+parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c)
+parr0_bandwidth
+end_point <- right_point(parr_max_input, parr0_bandwidth)-1
+start_point <- right_point(parr_min_input, parr0_bandwidth)-1
+  f <- fry_matrix_size #fry_matrix_size
+  p <- end_point # parr_matrix_size
+  s <- smolt_matrix_size #smolt_matrix_size
+  m <- matrix_size/10    #marine_matrix_size
+  r <- matrix_size/10   #returner_matrix_size
+  size <- 5 + f + 7 * p + s+ 4* m +  3 * r
+  z <- matrix(0, nrow = size, ncol = size)
+  checkmass_smolt = 70 #appaz
+  cs <- right_point(checkmass_smolt, parr0_bandwidth) #right point was defined above, it issss...
+  checkmass_adult = 1500
+  ca <- checkmass_adult/10
+  
+  # eyed-egg
+  z[3,3] <-ea_m(TC)
+  
+#at 3,3 it has inputted 0.8608
+#what is ea doing, it is just putting in the sr_ea which is defiend by roberston, nothing exciting
+  z
+
+  parr_min_input = 20 
+  # parr1-
+  parr <- parr_matrix(month, global_min= start_point, global_max = end_point, TC, matrix_size= p, parr0_bandwidth, c= parr_c)
+  z[(5+f+p): (4+f+2*p), (5+f+p):(4+f+2*p)] <- parr 
+  z[(5+f+2*p): (4+f+3*p), (5+f+2*p):(4+f+3*p)] <- parr
+  z[(5+f+3*p): (4+f+4*p), (5+f+3*p):(4+f+4*p)] <- parr
+  z[(5+f+4*p): (4+f+5*p), (5+f+4*p):(4+f+5*p)] <- parr
+  z[(5+f+5*p): (4+f+6*p), (5+f+5*p):(4+f+6*p)] <- parr
+  z[(5+f+6*p): (4+f+7*p), (5+f+6*p):(4+f+7*p)] <- parr
+  # marine 
+  marine <- marine_matrix(month, global_min = 10, global_max= m, TC, matrix_size = m, c = marine_c)
+  z[(5+f+7*p+s+m): (4+f+7*p+s+2*m), (5+f+7*p+s+m):(4+f+7*p+s+2*m)] <- marine
+  z[(5+f+7*p+s+2*m): (4+f+7*p+s+3*m), (5+f+7*p+s+2*m):(4+f+7*p+s+3*m)] <- marine
+  z[(5+f+7*p+s+3*m): (4+f+7*p+s+4*m), (5+f+7*p+s+3*m):(4+f+7*p+s+4*m)] <- marine
+  
+####this is month two and then it is repeated for twelve months
+
+#m2 <- function(TC, fry_matrix_size, smolt_matrix_size, matrix_size, parr0_bandwidth, parr_c, marine_c, checkmass_smolt, checkmass_adult, parr_max_input, parr_min_input){
+  month <- 2
+  
+  parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c)
+  end_point <- right_point(parr_max_input, parr0_bandwidth)-1
+  start_point <- right_point(parr_min_input, parr0_bandwidth)-1
+  f <- fry_matrix_size #fry_matrix_size
+  p <- end_point # parr_matrix_size
+  s <- smolt_matrix_size #smolt_matrix_size
+  m <- matrix_size/10    #marine_matrix_size
+  r <- matrix_size/10   #returner_matrix_size
+  size <- 5 + f + 7 * p + s+ 4* m +  3 * r
+  z <- matrix(0, nrow = size, ncol = size)
+  
+  cs <- right_point(checkmass_smolt, parr0_bandwidth)
+  ca <- checkmass_adult/10
+  
+  # eyed-egg
+  z[3,3] <-ea_m(TC)
+  # parr1-
+  parr <- parr_matrix(month, global_min= start_point, global_max = end_point, TC, matrix_size= p, parr0_bandwidth, c= parr_c)
+  z[(5+f+p): (4+f+2*p), (5+f+p):(4+f+2*p)] <- parr 
+  z[(5+f+2*p): (4+f+3*p), (5+f+2*p):(4+f+3*p)] <- parr
+  z[(5+f+3*p): (4+f+4*p), (5+f+3*p):(4+f+4*p)] <- parr
+  z[(5+f+4*p): (4+f+5*p), (5+f+4*p):(4+f+5*p)] <- parr
+  z[(5+f+5*p): (4+f+6*p), (5+f+5*p):(4+f+6*p)] <- parr
+  z[(5+f+6*p): (4+f+7*p), (5+f+6*p):(4+f+7*p)] <- parr
+  # marine 
+  marine <- marine_matrix(month, global_min = 10, global_max= m, TC, matrix_size = m, c = marine_c)
+  z[(5+f+7*p+s+m): (4+f+7*p+s+2*m), (5+f+7*p+s+m):(4+f+7*p+s+2*m)] <- marine
+  z[(5+f+7*p+s+2*m): (4+f+7*p+s+3*m), (5+f+7*p+s+2*m):(4+f+7*p+s+3*m)] <- marine
+  z[(5+f+7*p+s+3*m): (4+f+7*p+s+4*m), (5+f+7*p+s+3*m):(4+f+7*p+s+4*m)] <- marine
+  
+##then go through the loop year code which pumps out shit
