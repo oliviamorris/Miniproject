@@ -18,11 +18,11 @@ growthmass <- function(t, TC){        #OM: use t from above
 
 # 3.calculate the survival rate of a month. It was treated as 30 days a month
 survival <- function(m, TC){  #m : mass, the unit is gram
-  Temp = TC-5 +273.15                                        #OM: why -5
-  E = 0.45                                                   #OM:activation energy in fish?(ref?savage i think)
+  Temp = TC-5 +273.15                                        #OM: why -5, for iceland only she has removed this, but for uk added it, then added it overall..
+  E = 0.45                                                   #OM:activation energy in fish?(ref is savage 04 but applies to fish and mammals)
   k = 8.61*(10^(-5))                                         #OM:boltzmann constant 8.617333262145×10−5 in eV⋅K−1
   V <- E/ (k*Temp)                                           #OM: exp
-  Z <- (m ^(-0.23))*exp(19)/exp(V) # year survival rate      #OM: wtf is e(19)
+  Z <- (m ^(-0.23))*exp(19)/exp(V) # year survival rate      #OM: wtf is e(19), from figure in savage aper, eqn of line is -0.23 +19 i think
   Zm <- (1-Z)^(1/12)  # /12 to calculate month survival rate
   return(Zm)                                                 #OM: returns mortality rate per month
 }
@@ -31,7 +31,7 @@ survival <- function(m, TC){  #m : mass, the unit is gram
 # 4.calculate the fecundity.
 fecundity <- function(m, TC){
   m <- m/1000                                          #OM: as the relationship is kg and m is in g
-  egg_number <- (m^ 0.976) * exp(7.2924)               #OM: wo is e to the 7.2924 times mass to the 0.9
+  egg_number <- (m^ 0.976) * exp(7.2924)               #OM: from fecundity egn Coefficients: (Intercept) 7.2924      log(ConSize)  0.9767  
   egg_number <- round(egg_number)                      #OM: round it to whole number
   return(egg_number)                                   #OM: returns egg number
 }
@@ -62,7 +62,7 @@ mass_after_month <- function(initial_mass, month, TC){
 
 
 # the final mass after a month with constant fixed. for the parr stage and the adult in marine stage
-mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: with a constant?? whats the difference between these two
+mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: c: food availability
   t <- growthtime(initial_mass, TC) + monthtime(month)
   end_mass <- growthmass(t, TC)
   final_mass <- c *(end_mass -initial_mass) +initial_mass
@@ -1253,7 +1253,7 @@ initial_returner <- input_data_year[,3]                           #om: save all 
 
 initial_returner_sw1 <- initial_returner*0.55                 #OM: times each catch year by 0.55 and thas tsea winter 1 (why) is it the porbability that come bac as that?
 initial_returner_sw2 <- initial_returner*0.45                 #OM: times each catch year by 0.45 amd thats sea winter 2 and then the rest of pop?
- 
+#probablity of returners ^
 
 
 
@@ -1266,12 +1266,12 @@ loop_year_returner(whole_temp, year_min = 2002, year_max = 2016, fry_matrix_size
 #smolt matrix size
 #matrix size
 #input returner sw1 and sw2?
-#parr_c = 0.11
+#parr_c = 0.11         - fa in thesis - read that section 
 #marine_c = 0.64
 #parr_max_input = 200
 #parr_min_input = 20
-#checkmass_smolt = 70
-#checkmass_adult = 1500
+#checkmass_smolt = 70, when it reaches 70 g it smolts otherwie it goes back to parr stage (check with reference)
+#checkmass_adult = 1500, when it reaches that size, when they return the smallest size is about 1.5g 
 
 
 ############################OLIVIA BREAKING SOME OF THE FUNCTIONS DOWN TO SEE HWAT THEY ARE DOING################################
@@ -1373,6 +1373,15 @@ z
 #lets break it down and see wat is happenig
 #m1 <- function(TC, fry_matrix_size, smolt_matrix_size, matrix_size, parr0_bandwidth, parr_c, marine_c, checkmass_smolt, checkmass_adult, parr_max_input, parr_min_input){
 month <- 1 #THIS IS MONTH ONE
+
+fry_matrix_size=15
+smolt_matrix_size= 1500
+matrix_size = 8500
+parr_max_input = 200
+parr_c = 0.11
+parr_min_input = 20
+
+#actual size of the fish - check these paramters
 
 #SAME DEFINES AS BEFORE
 parr0_bandwidth <- parr0_band(start_weight = 1, end_weight = parr_max_input+100, TC = 0, c = parr_c)
