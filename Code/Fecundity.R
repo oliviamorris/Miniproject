@@ -1,5 +1,14 @@
 ###################Fecundity eqn########################
 
+#length weight relationship
+#read in data from De Eyto, E. et al, 2015. The fecundity of wild Irish Atlantic salmon Salmo salar L. and its application for stock assessment purposes. Fisheries Research, 164, pp.159-169.
+lw<-read.csv("Documents/PhD/Miniproject/Data/lengthweight.csv")
+#plot
+ggplot(lw ,aes(length.m., weight.kg.))+
+  geom_point()+
+  stat_smooth(method = "lm", formula=y~poly(x,2)) 
+
+
 
 # 6. calculate the fecundity.
 fecundity <- function(m, TC){

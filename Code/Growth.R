@@ -54,8 +54,8 @@ mass_after_month_fixed <- function(initial_mass, month, TC, c){     #OM: with a 
 ################################ Livis version #################################################################################
 
 #1. Development time (day)
-growthtimedays <- function(m, TC, t0= 5.73, g=-0.13){
-  t <- exp(t0) * m^0.25 * exp(g* TC/(1+(TC/273)) ) #yuxins values are taken from figure 1b         
+growthtimeday <- function(m, TC, t0= 5.73, g=-0.13){
+  t <- exp(t0) * m^0.25 * exp(g* TC/(1+(TC/273)) ) #values are taken from figure 1b         
   return(t)   #time in days
 }
 
@@ -67,7 +67,7 @@ growthtimemonth <- function(m, TC, t0= 5.73, g=-0.13){
 }
 
 
-#3.Development mass (in a day)
+#3.Development mass (in a day?)
 growthmassday <- function(t, TC, t0=5.73, g=-0.13){        #t: growthtime
   m <- (( exp(t0) * exp(g* TC/(1+(TC/273))))/t)^(-4)
   return(m)
@@ -76,10 +76,10 @@ growthmassday <- function(t, TC, t0=5.73, g=-0.13){        #t: growthtime
 
 
 # Development mass (per month)
-growthmassmonth <- function(t, TC, t0=5.73, g=-0.13){       
-  m <- (( exp(t0) * exp(g* TC/(1+(TC/273))))/(t*30))^(-4)
-  return(m)
-}
+#growthmassmonth <- function(t, TC, t0=5.73, g=-0.13){       
+#  m <- (( exp(t0) * exp(g* TC/(1+(TC/273))))/(t*30))^(-4)
+#  return(m)
+#}
 
 
 #5.monthduration for how many days in each month (1-12). Feb was treated all as 28 
@@ -107,7 +107,7 @@ mass_after_month_fixed <- function(initial_mass, month, TC, c){
 
 ######## plot of 1.##############################################################################
 require(ggplot2)
-set <- seq(0,10000, 0.001)
+set <- seq(0,10000, 0.1)
 
 #plot of growth time per month#
 part1 <- matrix(0, nrow = length(set), ncol = 3)
@@ -147,7 +147,8 @@ whole <- as.data.frame(whole)
 
 
 ggplot(whole, aes(x= Mass, y= Growth.Time, group=Temperature, colour = Temperature))+
-  geom_line(cex = 0.5)+
+  geom_line(cex=0.5)+
+  #stat_smooth( cex = 0.5)+
   scale_x_log10()+
   theme_classic()+
   theme(plot.title = element_text(hjust = 0.5))+
@@ -168,6 +169,52 @@ ggplot(whole, aes(x= Mass, y= Growth.Time, group=Temperature, colour = Temperatu
 
 
 ###########################################
+  #plot of mass per day#
+  part1 <- matrix(0, nrow = length(set), ncol = 3)
+  part1[,1] <- rep(-5, length(set)) 
+  part1[,2] <- set 
+  part1[,3] <- round(growthmassday(set,-5))
   
-
+  part2 <- matrix(0, nrow = length(set), ncol = 3)
+  part2[,1] <- rep(0, length(set)) 
+  part2[,2] <- set 
+  part2[,3] <- round(growthmassday(set,0))
+  
+  part3 <- matrix(0, nrow = length(set), ncol = 3)
+  part3[,1] <- rep(5, length(set))
+  part3[,2] <- set 
+  part3[,3] <- round(growthmassday(set,5) , digits = 4)
+  
+  part4 <- matrix(0, nrow = length(set), ncol = 3)
+  part4[,1] <- rep(10, length(set))
+  part4[,2] <- set 
+  part4[,3] <- round(growthmassday(set,10))
+  
+  part5 <- matrix(0, nrow = length(set), ncol = 3)
+  part5[,1] <- rep(15, length(set)) 
+  part5[,2] <- set 
+  part5[,3] <- round(growthmassday(set,15))
+  
+  part6 <- matrix(0, nrow = length(set), ncol = 3)
+  part6[,1] <- rep(20, length(set))
+  part6[,2] <- set 
+  part6[,3] <- round(growthmassday(set,20))
+  
+  
+  whole <- rbind(part1, part2, part3, part4,part5, part6)
+  colnames(whole) <-  c("Temperature","Time","Mass")
+  whole <- as.data.frame(whole)
+  
+  
+  ggplot(whole, aes(x= Time, y= Mass, group=Temperature, colour = Temperature))+
+    geom_line(cex=0.5)+
+    #stat_smooth( cex = 0.5)+
+    scale_y_log10()+
+    theme_classic()+
+    theme(plot.title = element_text(hjust = 0.5))+
+    labs(x="Time",y="log mass") +
+    theme(axis.title  = element_text(size = 15))+
+    theme(axis.text  = element_text(size = 12))+
+    scale_color_gradient(low = "skyblue", high = "tomato")
+  
   
